@@ -3,6 +3,7 @@ var path = require('path');
 var _ = require('underscore');
 var { StringDecoder } = require('string_decoder');
 var helpers = require('../web/http-helpers');
+var http = require('http');
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -119,11 +120,7 @@ exports.isUrlArchived = function(url, callback, res) {
 
 // Worker Function
 exports.downloadUrls = function(urls) {
-  // input: 
-  // output:
-  // process:
-  
-  
+
 };
 
 
