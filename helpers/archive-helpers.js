@@ -30,6 +30,7 @@ exports.readListOfUrls = function(url, callback) {
   // output:
   // process:
   //assume my callback is isUrlInList
+  console.log('inside readListOfUrls');
   this.callback = callback;
   fs.readFile(this.paths.list, (err, file) => {  
     if (err) {
@@ -38,7 +39,8 @@ exports.readListOfUrls = function(url, callback) {
     } else {
       var decoder = new StringDecoder('utf8');
       this.allUrls = decoder.write(Buffer.from(file)).split('\n');
-      // console.log('retrieved', allUrls);
+
+      console.log('About to send into isUrlInList');
       this.callback(url, this.addUrlToList);
     }
   });
@@ -52,17 +54,20 @@ exports.isUrlInList = function(url, callback) {
   // output: boolean
   // process: read sites.txt file in our archive, return whether its there
   // callback is addUrlToList
-  
+  console.log('inside isUrlInList');
+  console.log('this.allUrls in readListOfUrls', this.allUrls);
   this.callback = callback;
-  var bool = _.reduce(this.arrayUrls, (acc, val) => {
+  var bool = _.reduce(this.allUrls, (acc, val) => {
     if (acc) { return true; }
     if (val === url) { return true; }
     return false;
   }, false);
-  if (bool) {
-    this.isUrlArchived(url, helpers.serveAssets);
+  if (bool) { // if URL is found in site.txt
+    this.isUrlArchived(url/*, helpers.serveAssets*/);
+    console.log('URL found, so next is checking if Archived');
   } else { 
-    this.callback(url, this.redirect);
+    this.callback(url/*, helpers.serveAssets*/); //addUrlToList
+    console.log('URL Not found, next is adding url to list');
   }
 
 };
@@ -80,7 +85,7 @@ exports.addUrlToList = function(url, callback) {
   fs.appendFile(this.paths.list, '\n' + url, {flags: 'ax'}, (err) => {
     if (err) { throw err; }
     console.log('appended to file');
-    callback();
+    // callback(/*the redirect */);
   });
 };
 
@@ -89,7 +94,7 @@ exports.isUrlArchived = function(url, callback) {
   // input: target url
   // output: boolean
   // process: read sites.txt, see if property archived
-  
+  console.log('now inside isUrlArchived');
   fs.readdir(this.paths.archivedSites, (err, sites) => {
     if (err) { throw error; }
     var bool = sites.reduce((acc, site) => {
@@ -99,8 +104,10 @@ exports.isUrlArchived = function(url, callback) {
     }, false);
     
     if (bool) {
-      helper.serveAssets(/*response, assest, callback*/);
+      console.log('Found site in archive, next is serving it');
+      // helper.serveAssets(/*response, assest, callback*/);
     } else {
+      console.log('Site not found, next is redirecting to new html');
       // if this is server requesting redirect
       // else if this is worker, then download
     }

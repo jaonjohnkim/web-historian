@@ -6,26 +6,19 @@ var fs = require('fs');
 // require more modules/folders here!
 
 exports.handleRequest = function (req, res) {
-  console.log('handle Request triggered');
+  // console.log('handle Request triggered');
   var url = req.url;
-  console.log(`processing request for ${req.url}`);
+  // console.log(`processing request for ${req.url}`);
   
   if (req.method === 'POST') {
     var data = '';
     req.on('data', (chunk) => {
-      console.log('What is chunk?', chunk);
+      // console.log('What is chunk?', chunk);
       data += chunk;
     });
     req.on('end', () => {
       var website = data.split('=')[1];
-      console.log('bool', archive.isUrlInList(website));
-      if (archive.isUrlInList(website)) {
-        console.log('Website in sites.txt');
-      } else {
-        console.log('Adding website to sites.txt...');
-        archive.addUrlToList(website);
-      }
-        
+      archive.readListOfUrls(website, archive.isUrlInList);
     });
     
     // console.log('Post url', req);
