@@ -8,7 +8,7 @@ var fs = require('fs');
 exports.handleRequest = function (req, res) {
   // console.log('handle Request triggered');
   var url = req.url;
-  // console.log(`processing request for ${req.url}`);
+  console.log(`processing request for ${req.url} and ${req.method}`);
   
   if (req.method === 'POST') {
     var data = '';
@@ -18,49 +18,15 @@ exports.handleRequest = function (req, res) {
     });
     req.on('end', () => {
       var website = data.split('=')[1];
-      archive.readListOfUrls(website, archive.isUrlInList);
+      archive.readListOfUrls(website, archive.isUrlInList, res);
     });
     
     // console.log('Post url', req);
   } else if (req.method === 'GET') {
     if (url === '/') { url = '/index.html'; }
     // console.log(archive.paths.siteAssets, url);
-    fs.readFile(archive.paths.siteAssets + url, (err, file) => {
-      if (url.includes('html')) {
-        var header = {'Content-Type': 'text/html'};
-      } else if (url.includes('css')) {
-        var header = {'Content-Type': 'text/css'};
-      }
-      if (err) {
-        // console.log('File NOT found!');
-        res.writeHead(404, header);
-        res.end('File Not Found');
-      } else {
-        // console.log('File found!');
-        res.writeHead(200, header);
-        res.end(file);
-      }
-    });
+    helpers.serveAssets(res, url);
   }
-  
-  if (url === '/') { url = '/index.html'; }
-    // console.log(archive.paths.siteAssets, url);
-  fs.readFile(archive.paths.siteAssets + url, (err, file) => {
-    if (url.includes('html')) {
-      var header = {'Content-Type': 'text/html'};
-    } else if (url.includes('css')) {
-      var header = {'Content-Type': 'text/css'};
-    }
-    if (err) {
-      // console.log('File NOT found!');
-      res.writeHead(404, header);
-      res.end('File Not Found');
-    } else {
-      // console.log('File found!');
-      res.writeHead(200, header);
-      res.end(file);
-    }
-  });
   
   // archive.readListOfUrls();
   

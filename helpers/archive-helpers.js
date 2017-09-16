@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var { StringDecoder } = require('string_decoder');
+var helpers = require('../web/http-helpers');
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -25,7 +26,7 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(url, callback) {
+exports.readListOfUrls = function(url, callback, res) {
   // input: 
   // output:
   // process:
@@ -41,7 +42,7 @@ exports.readListOfUrls = function(url, callback) {
       this.allUrls = decoder.write(Buffer.from(file)).split('\n');
 
       console.log('About to send into isUrlInList');
-      this.callback(url, this.addUrlToList);
+      this.callback(url, this.addUrlToList, res);
     }
   });
   
@@ -49,7 +50,7 @@ exports.readListOfUrls = function(url, callback) {
 };
 
 // Server Function
-exports.isUrlInList = function(url, callback) {
+exports.isUrlInList = function(url, callback, res) {
   // input: target url
   // output: boolean
   // process: read sites.txt file in our archive, return whether its there
@@ -63,10 +64,10 @@ exports.isUrlInList = function(url, callback) {
     return false;
   }, false);
   if (bool) { // if URL is found in site.txt
-    this.isUrlArchived(url/*, helpers.serveAssets*/);
+    this.isUrlArchived(url, helpers.serveAssets, res);
     console.log('URL found, so next is checking if Archived');
   } else { 
-    this.callback(url/*, helpers.serveAssets*/); //addUrlToList
+    this.callback(url, helpers.serveAssets, res); //addUrlToList
     console.log('URL Not found, next is adding url to list');
   }
 
@@ -76,7 +77,7 @@ exports.isUrlInList = function(url, callback) {
   // process:
 
 // Server Function
-exports.addUrlToList = function(url, callback) {
+exports.addUrlToList = function(url, callback, res) {
   // input: target url
   // output: n/a
   // process: write to sites.txt with new url
@@ -85,12 +86,12 @@ exports.addUrlToList = function(url, callback) {
   fs.appendFile(this.paths.list, '\n' + url, {flags: 'ax'}, (err) => {
     if (err) { throw err; }
     console.log('appended to file');
-    // callback(/*the redirect */);
+    callback(res, '/loading.html');
   });
 };
 
 // Worker & Server Function
-exports.isUrlArchived = function(url, callback) {
+exports.isUrlArchived = function(url, callback, res) {
   // input: target url
   // output: boolean
   // process: read sites.txt, see if property archived
@@ -98,17 +99,19 @@ exports.isUrlArchived = function(url, callback) {
   fs.readdir(this.paths.archivedSites, (err, sites) => {
     if (err) { throw error; }
     var bool = sites.reduce((acc, site) => {
+      console.log('Inside reduce', site);
       if (acc) { return true; }
-      if (site === url) { return true; }
+      if (site === url + '.htm') { return true; }
       return false;
     }, false);
     
     if (bool) {
       console.log('Found site in archive, next is serving it');
-      // helper.serveAssets(/*response, assest, callback*/);
+      helpers.serveAssets(res, '/' + url + '.htm', callback, true);
     } else {
-      console.log('Site not found, next is redirecting to new html');
+      console.log('Site not found, next is redirecting to loading html');
       // if this is server requesting redirect
+      helpers.serveAssets(res, '/loading.html');
       // else if this is worker, then download
     }
   });
